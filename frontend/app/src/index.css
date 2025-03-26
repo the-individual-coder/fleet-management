@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html{
+  scroll-behavior: smooth;
+  overflow: hidden;
+}
+/* input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+} */
+.login, .register{
+  background-image: url('/stock-bg.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.dialog-container{
+  transform: translateY(999px);
+}
+
+.dialog-container.show-dialog{
+  transform:none;
+}
+
+.hide{
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(10%);
+  transition: all 1s;
+}
+.hide_2{
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateX(-10%);
+  transition: all 1s;
+}
+.hide_3{
+opacity: 0;
+filter: blur(5px);
+transform: translateX(10%);
+transition: all 1s;
+}
+.show {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+.show_2{
+  opacity: 1;
+  filter: blur(0);
+  transform: translateX(0);
+}
+
+.react-tel-input .form-control{
+  width: 120px;
+}
+
+#phoneInput{
+  width: 120px;
+}
+
+.pincode-input-container
+{
+  .pincode-input-text{
+    font-size: 1.5rem;
+    padding:10px !important;
+    margin:0 2px;
+    text-align:center;
+    border: 1px solid;
+    border-radius: 5px;
+    background: transparent;
+    width: 50px;
+    height: 50px;
+  }
+  .pincode-input-text:focus
+  {
+    outline:none;
+    box-shadow:none;
+  }
+}
+
