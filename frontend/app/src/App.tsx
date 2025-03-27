@@ -19,6 +19,7 @@ import {ProjectTasksPage} from './pages/ProjectTask';
 import Supplier from './pages/Supplier';
 import { WarehousingPage } from './pages/Warehousing';
 import { SpareParts } from './pages/SpareParts';
+import { Vehicles } from './pages/Vehicles';
 declare global {
   interface Window {
     HSStaticMethods: IStaticMethods;
@@ -80,6 +81,7 @@ function App() {
       <Route element={<ProjectTasksPage/>} path='/projecttask' />
       <Route element={<Supplier/>} path='/supplier' />
       <Route element={<WarehousingPage/>} path='/warehouse' />
+      <Route element={<Vehicles/>} path='/vehicles' />
       </Route>
     </Routes>
     </>
