@@ -1,7 +1,6 @@
 
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
-import LineChart from "../components/LineChart";
 export const Homepage = () => {
     const { user } = useOutletContext<OutletContextType>()
     console.log("this is the user>> ", user)

@@ -118,23 +118,6 @@ export const VendorRequests = () => {
         }
     };
 
-    // Update request status
-    const updateStatus = async (request_id: number, status: string) => {
-        try {
-            setIsLoading(true);
-            await axios.post(`${hostServer}/updateRequestStatus`, {
-                request_id,
-                status,
-                approved_by: user.username // assuming user object has username
-            });
-            fetchVendorRequests();
-            alert(`Request ${status} successfully!`);
-        } catch (err) {
-            console.error("Error updating status:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     // Delete vendor request
     const deleteVendorRequest = async (request_id: number) => {

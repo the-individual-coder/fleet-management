@@ -2,7 +2,6 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { FadeLoader } from 'react-spinners';
-import SparePartsAlert from '../components/spare_parts_alert';
 export interface OrderData {
   "Date Ordered": string;
   Month: number;
