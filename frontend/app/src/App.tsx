@@ -20,6 +20,10 @@ import Supplier from './pages/Supplier';
 import { WarehousingPage } from './pages/Warehousing';
 import { SpareParts } from './pages/SpareParts';
 import { Vehicles } from './pages/Vehicles';
+import { MaintenanceFleet } from './pages/MaintenanceFleet';
+import { Vendor } from './pages/Vendors';
+import { VendorRequests } from './pages/VendorRequest';
+import { Reservations } from './pages/VehicleReservations';
 declare global {
   interface Window {
     HSStaticMethods: IStaticMethods;
@@ -79,9 +83,15 @@ function App() {
       <Route element={<SpareParts/>} path='/spare_parts' />
       <Route element={<Project/>} path='/project' />
       <Route element={<ProjectTasksPage/>} path='/projecttask' />
+
+
       <Route element={<Supplier/>} path='/supplier' />
       <Route element={<WarehousingPage/>} path='/warehouse' />
       <Route element={<Vehicles/>} path='/vehicles' />
+      <Route element={<MaintenanceFleet/>} path='/maintenances' />
+      <Route element={<Vendor/>} path='/vendors' />
+      <Route element={<VendorRequests/>} path='/vendor-requests' />
+      <Route element={<Reservations/>} path='/vehicles-reservations' />
       </Route>
     </Routes>
     </>

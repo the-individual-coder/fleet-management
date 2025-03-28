@@ -4,33 +4,31 @@ import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
 
-export default interface VehicleI {
+export default interface MaintenanceI {
+    maintenance_id: number;
     vehicle_id: number;
-    license_plate: string;
-    make: string;
-    model: string;
-    year: number;
-    vehicle_type: string;
-    current_mileage: number;
-    fuel_type: string;
+    maintenance_type: string;
+    description: string;
+    scheduled_date: string;
+    completed_date: string | null;
+    cost: number | null;
+    service_provider: string | null;
+    technician_name: string | null;
     status: string;
-    last_maintenance_date: string;
-    next_maintenance_date: string;
-    purchase_date: string;
-    purchase_price: number;
-    notes: string;
+    mileage: number | null;
+    notes: string | null;
 }
 
-export const Vehicles = () => {
+export const MaintenanceFleet = () => {
     const hostServer = import.meta.env.VITE_SERVER_HOST;
     const { setIsLoading, user } = useOutletContext<OutletContextType>();
-    const [vehicles, setVehicles] = useState<VehicleI[]>([]);
+    const [maintenance, setMaintenance] = useState<MaintenanceI[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
     const lastIndexPage = currentPage * itemsPerPage;
     const firstIndexPage = lastIndexPage - itemsPerPage;
-    const data = vehicles?.slice(firstIndexPage, lastIndexPage);
-    const totalPages = Math.ceil(vehicles.length / itemsPerPage);
+    const data = maintenance?.slice(firstIndexPage, lastIndexPage);
+    const totalPages = Math.ceil(maintenance.length / itemsPerPage);
     const formatDateForInput = (date: any) => {
         const d = new Date(date);
         const year = d.getFullYear();
@@ -39,43 +37,39 @@ export const Vehicles = () => {
         return `${year}-${month}-${day}`;
     };
     const [addDataForm, setAddDataForm] = useState({
-        license_plate: "",
-        make: "",
-        model: "",
-        year: "",
-        vehicle_type: "",
-        current_mileage: "",
-        fuel_type: "",
-        status: "available",
-        last_maintenance_date: "",
-        next_maintenance_date: "",
-        purchase_date: "",
-        purchase_price: "",
+        vehicle_id: "",
+        maintenance_type: "routine",
+        description: "",
+        scheduled_date: "",
+        completed_date: "",
+        cost: "",
+        service_provider: "",
+        technician_name: "",
+        status: "scheduled",
+        mileage: "",
         notes: ""
     });
 
     const [updateDataForm, setUpdateDataForm] = useState({
-        license_plate: "",
-        make: "",
-        model: "",
-        year: "",
-        vehicle_type: "",
-        current_mileage: "",
-        fuel_type: "",
-        status: "available",
-        last_maintenance_date: "",
-        next_maintenance_date: "",
-        purchase_date: "",
-        purchase_price: "",
+        vehicle_id: "",
+        maintenance_type: "routine",
+        description: "",
+        scheduled_date: "",
+        completed_date: "",
+        cost: "",
+        service_provider: "",
+        technician_name: "",
+        status: "scheduled",
+        mileage: "",
         notes: ""
     });
 
-    // Function to fetch all vehicles
-    const fetchVehicles = async () => {
+    // Fetch all maintenance records
+    const fetchMaintenance = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`${hostServer}/getVehicles`);
-            setVehicles(response.data);
+            const response = await axios.get(`${hostServer}/getMaintenance`);
+            setMaintenance(response.data);
         } catch (err) {
             console.error(err);
         } finally {
@@ -83,27 +77,25 @@ export const Vehicles = () => {
         }
     };
 
-    // Function to register a new vehicle
-    const registerVehicle = async (e: any) => {
+    // Register new maintenance
+    const registerMaintenance = async (e: any) => {
         try {
             setIsLoading(true);
             e.preventDefault();
-            await axios.post(`${hostServer}/registerVehicle`, addDataForm);
-            fetchVehicles();
-            alert("Vehicle added successfully!");
+            await axios.post(`${hostServer}/registerMaintenance`, addDataForm);
+            fetchMaintenance();
+            alert("Maintenance record added successfully!");
             setAddDataForm({
-                license_plate: "",
-                make: "",
-                model: "",
-                year: "",
-                vehicle_type: "",
-                current_mileage: "",
-                fuel_type: "",
-                status: "available",
-                last_maintenance_date: "",
-                next_maintenance_date: "",
-                purchase_date: "",
-                purchase_price: "",
+                vehicle_id: "",
+                maintenance_type: "routine",
+                description: "",
+                scheduled_date: "",
+                completed_date: "",
+                cost: "",
+                service_provider: "",
+                technician_name: "",
+                status: "scheduled",
+                mileage: "",
                 notes: ""
             });
             setIsLoading(false);
@@ -113,17 +105,17 @@ export const Vehicles = () => {
         }
     };
 
-    // Function to update a vehicle
-    const updateVehicle = async (e: any, id: number) => {
+    // Update maintenance
+    const updateMaintenance = async (e: any, id: number) => {
         try {
             e.preventDefault();
             setIsLoading(true);
-            await axios.post(`${hostServer}/updateVehicle`, {
+            await axios.post(`${hostServer}/updateMaintenance`, {
                 ...updateDataForm,
-                vehicle_id: id
+                maintenance_id: id
             });
-            fetchVehicles();
-            alert("Vehicle updated successfully!");
+            fetchMaintenance();
+            alert("Maintenance record updated successfully!");
             setIsLoading(false);
         } catch (err) {
             console.error(err);
@@ -131,14 +123,13 @@ export const Vehicles = () => {
         }
     };
 
-    // Function to delete a vehicle
-    const removeVehicle = async (id: number) => {
+    // Delete maintenance
+    const removeMaintenance = async (id: number) => {
         try {
             setIsLoading(true);
-            await axios.delete(`${hostServer}/removeVehicle/${id}`);
-            setVehicles(vehicles.filter(vehicle => vehicle.vehicle_id !== id));
-            alert("Vehicle deleted successfully!");
-            fetchVehicles();
+            await axios.delete(`${hostServer}/removeMaintenance/${id}`);
+            setMaintenance(maintenance.filter(record => record.maintenance_id !== id));
+            alert("Maintenance record deleted successfully!");
             setIsLoading(false);
         } catch (err) {
             console.error(err);
@@ -147,22 +138,20 @@ export const Vehicles = () => {
     };
 
     // Toggle edit dialog
-    const toggleDialog = (data: VehicleI) => {
-        const dialog = document.querySelectorAll(`.dialog-${data.vehicle_id}`);
+    const toggleDialog = (data: MaintenanceI) => {
+        const dialog = document.querySelectorAll(`.dialog-${data.maintenance_id}`);
         if (dialog.length !== 0) {
             setUpdateDataForm({
-                license_plate: data.license_plate,
-                make: data.make,
-                model: data.model,
-                year: data.year.toString(),
-                vehicle_type: data.vehicle_type,
-                current_mileage: data.current_mileage?.toString() || "",
-                fuel_type: data.fuel_type,
+                vehicle_id: data.vehicle_id.toString(),
+                maintenance_type: data.maintenance_type,
+                description: data.description,
+                scheduled_date: data.scheduled_date,
+                completed_date: data.completed_date || "",
+                cost: data.cost?.toString() || "",
+                service_provider: data.service_provider || "",
+                technician_name: data.technician_name || "",
                 status: data.status,
-                last_maintenance_date: data.last_maintenance_date || "",
-                next_maintenance_date: data.next_maintenance_date || "",
-                purchase_date: data.purchase_date || "",
-                purchase_price: data.purchase_price?.toString() || "",
+                mileage: data.mileage?.toString() || "",
                 notes: data.notes || ""
             });
             dialog.forEach((item) => item.classList.toggle('show-dialog'));
@@ -170,7 +159,7 @@ export const Vehicles = () => {
     };
 
     useEffect(() => {
-        fetchVehicles();
+        fetchMaintenance();
     }, []);
 
     return (
@@ -184,10 +173,10 @@ export const Vehicles = () => {
                                 <div className="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700">
                                     <div>
                                         <h2 className="text-xl font-semibold text-gray-800 dark:text-neutral-200">
-                                            Vehicles Data
+                                            Maintenance Records
                                         </h2>
                                         <p className="text-sm text-gray-600 dark:text-neutral-400">
-                                            Create vehicles, edit and delete.
+                                            Create, edit and delete maintenance records.
                                         </p>
                                     </div>
                                     <div>
@@ -200,9 +189,9 @@ export const Vehicles = () => {
                                                 aria-controls="hs-focus-management-modal"
                                                 data-hs-overlay="#hs-focus-management-modal"
                                             >
-                                                Add Vehicle
+                                                Add Maintenance
                                             </button>
-                                            {/* Add Vehicle Modal */}
+                                            {/* Add Maintenance Modal */}
                                             <div
                                                 id="hs-focus-management-modal"
                                                 className="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y-auto pointer-events-none"
@@ -212,10 +201,10 @@ export const Vehicles = () => {
                                             >
                                                 <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
                                                     <div className="flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
-                                                        <form onSubmit={registerVehicle}>
+                                                        <form onSubmit={registerMaintenance}>
                                                             <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
                                                                 <h3 className="font-bold text-gray-800 dark:text-white">
-                                                                    Vehicle Registration
+                                                                    Maintenance Registration
                                                                 </h3>
                                                                 <button
                                                                     type="button"
@@ -231,97 +220,117 @@ export const Vehicles = () => {
                                                                 </button>
                                                             </div>
                                                             <div className="p-4 overflow-y-auto space-y-4">
-                                                                {/* License Plate */}
+                                                                {/* Vehicle ID */}
                                                                 <div>
-                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">License Plate</label>
+                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle ID</label>
                                                                     <input
-                                                                        onChange={(e) => setAddDataForm({...addDataForm, license_plate: e.target.value})}
-                                                                        value={addDataForm.license_plate}
-                                                                        type="text"
+                                                                        onChange={(e) => setAddDataForm({...addDataForm, vehicle_id: e.target.value})}
+                                                                        value={addDataForm.vehicle_id}
+                                                                        type="number"
                                                                         required
                                                                         className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                        placeholder="Enter license plate"
+                                                                        placeholder="Enter vehicle ID"
                                                                     />
                                                                 </div>
 
-                                                                {/* Make and Model */}
+                                                                {/* Maintenance Type */}
+                                                                <div>
+                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Maintenance Type</label>
+                                                                    <select
+                                                                        onChange={(e) => setAddDataForm({...addDataForm, maintenance_type: e.target.value})}
+                                                                        value={addDataForm.maintenance_type}
+                                                                        className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+                                                                        required
+                                                                    >
+                                                                        <option value="routine">Routine</option>
+                                                                        <option value="repair">Repair</option>
+                                                                        <option value="overhaul">Overhaul</option>
+                                                                        <option value="inspection">Inspection</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                {/* Description */}
+                                                                <div>
+                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Description</label>
+                                                                    <textarea
+                                                                        onChange={(e) => setAddDataForm({...addDataForm, description: e.target.value})}
+                                                                        value={addDataForm.description}
+                                                                        required
+                                                                        className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                        placeholder="Enter description"
+                                                                        rows={3}
+                                                                    />
+                                                                </div>
+
+                                                                {/* Dates */}
                                                                 <div className="grid grid-cols-2 gap-4">
                                                                     <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Make</label>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Scheduled Date</label>
                                                                         <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, make: e.target.value})}
-                                                                            value={addDataForm.make}
-                                                                            type="text"
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, scheduled_date: e.target.value})}
+                                                                            value={formatDateForInput(addDataForm.scheduled_date)}
+                                                                            type="date"
                                                                             required
                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                            placeholder="Enter make"
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Model</label>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Completed Date</label>
                                                                         <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, model: e.target.value})}
-                                                                            value={addDataForm.model}
-                                                                            type="text"
-                                                                            required
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, completed_date: e.target.value})}
+                                                                            value={formatDateForInput(addDataForm.completed_date)}
+                                                                            type="date"
                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                            placeholder="Enter model"
                                                                         />
                                                                     </div>
                                                                 </div>
 
-                                                                {/* Year and Type */}
+                                                                {/* Cost and Mileage */}
                                                                 <div className="grid grid-cols-2 gap-4">
                                                                     <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Year</label>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Cost</label>
                                                                         <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, year: e.target.value})}
-                                                                            value={addDataForm.year}
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, cost: e.target.value})}
+                                                                            value={addDataForm.cost}
                                                                             type="number"
-                                                                            required
+                                                                            step="0.01"
                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                            placeholder="Enter year"
+                                                                            placeholder="Enter cost"
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle Type</label>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Mileage</label>
                                                                         <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, vehicle_type: e.target.value})}
-                                                                            value={addDataForm.vehicle_type}
-                                                                            type="text"
-                                                                            required
-                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                            placeholder="Enter type"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Mileage and Fuel Type */}
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Current Mileage</label>
-                                                                        <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, current_mileage: e.target.value})}
-                                                                            value={addDataForm.current_mileage}
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, mileage: e.target.value})}
+                                                                            value={addDataForm.mileage}
                                                                             type="number"
                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
                                                                             placeholder="Enter mileage"
                                                                         />
                                                                     </div>
+                                                                </div>
+
+                                                                {/* Service Provider and Technician */}
+                                                                <div className="grid grid-cols-2 gap-4">
                                                                     <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Fuel Type</label>
-                                                                        <select
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, fuel_type: e.target.value})}
-                                                                            value={addDataForm.fuel_type}
-                                                                            className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-                                                                            required
-                                                                        >
-                                                                            <option value="">Select fuel type</option>
-                                                                            <option value="gasoline">Gasoline</option>
-                                                                            <option value="diesel">Diesel</option>
-                                                                            <option value="electric">Electric</option>
-                                                                            <option value="hybrid">Hybrid</option>
-                                                                        </select>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Service Provider</label>
+                                                                        <input
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, service_provider: e.target.value})}
+                                                                            value={addDataForm.service_provider}
+                                                                            type="text"
+                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                            placeholder="Enter service provider"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Technician Name</label>
+                                                                        <input
+                                                                            onChange={(e) => setAddDataForm({...addDataForm, technician_name: e.target.value})}
+                                                                            value={addDataForm.technician_name}
+                                                                            type="text"
+                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                            placeholder="Enter technician name"
+                                                                        />
                                                                     </div>
                                                                 </div>
 
@@ -334,57 +343,11 @@ export const Vehicles = () => {
                                                                         className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                                                                         required
                                                                     >
-                                                                        <option value="available">Available</option>
-                                                                        <option value="in_use">In Use</option>
-                                                                        <option value="maintenance">Maintenance</option>
-                                                                        <option value="out_of_service">Out of Service</option>
+                                                                        <option value="scheduled">Scheduled</option>
+                                                                        <option value="in_progress">In Progress</option>
+                                                                        <option value="completed">Completed</option>
+                                                                        <option value="cancelled">Cancelled</option>
                                                                     </select>
-                                                                </div>
-
-                                                                {/* Maintenance Dates */}
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Last Maintenance Date</label>
-                                                                        <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, last_maintenance_date: formatDateForInput(e.target.value)})}
-                                                                            value={formatDateForInput(addDataForm.last_maintenance_date)}
-                                                                            type="date"
-                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Next Maintenance Date</label>
-                                                                        <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, next_maintenance_date: formatDateForInput(e.target.value)})}
-                                                                            value={formatDateForInput(addDataForm.next_maintenance_date)}
-                                                                            type="date"
-                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Purchase Info */}
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Purchase Date</label>
-                                                                        <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, purchase_date: formatDateForInput(e.target.value)})}
-                                                                            value={formatDateForInput(addDataForm.purchase_date)}
-                                                                            type="date"
-                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Purchase Price</label>
-                                                                        <input
-                                                                            onChange={(e) => setAddDataForm({...addDataForm, purchase_price: e.target.value})}
-                                                                            value={addDataForm.purchase_price}
-                                                                            type="number"
-                                                                            step="0.01"
-                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                            placeholder="Enter price"
-                                                                        />
-                                                                    </div>
                                                                 </div>
 
                                                                 {/* Notes */}
@@ -432,19 +395,16 @@ export const Vehicles = () => {
                                                     <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">ID</span>
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-start">
-                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">License Plate</span>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-start">
-                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Make/Model</span>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-start">
-                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Year</span>
+                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Vehicle ID</span>
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-start">
                                                     <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Type</span>
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-start">
-                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Mileage</span>
+                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Description</span>
+                                                </th>
+                                                <th scope="col" className="px-6 py-3 text-start">
+                                                    <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Scheduled</span>
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-start">
                                                     <span className="text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200">Status</span>
@@ -455,7 +415,7 @@ export const Vehicles = () => {
                                         {data.length === 0 ? (
                                             <tbody>
                                                 <tr>
-                                                    <td colSpan={8} className="text-center py-8">
+                                                    <td colSpan={7} className="text-center py-8">
                                                         <div className="h-96 w-full flex items-center justify-center">
                                                             <h1 className="text-lg">No Records Found</h1>
                                                         </div>
@@ -463,73 +423,63 @@ export const Vehicles = () => {
                                                 </tr>
                                             </tbody>
                                         ) : (
-                                            data.map((vehicle) => (
-                                                <React.Fragment key={vehicle.vehicle_id}>
+                                            data.map((record) => (
+                                                <React.Fragment key={record.maintenance_id}>
                                                     <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
                                                         <tr className="bg-white hover:bg-gray-50 dark:bg-neutral-900 dark:hover:bg-neutral-800">
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.vehicle_id}
+                                                                        {record.maintenance_id}
                                                                     </p>
                                                                 </div>
                                                             </td>
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.license_plate}
-                                                                    </p>
-                                                                </div>
-                                                            </td>
-                                                            <td className="size-px whitespace-nowrap">
-                                                                <div className="px-6 py-2">
-                                                                    <p className="text-sm font-medium text-gray-800 dark:text-neutral-200">
-                                                                        {vehicle.make}
-                                                                    </p>
-                                                                    <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.model}
+                                                                        {record.vehicle_id}
                                                                     </p>
                                                                 </div>
                                                             </td>
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.year}
+                                                                        {record.maintenance_type.charAt(0).toUpperCase() + record.maintenance_type.slice(1)}
+                                                                    </p>
+                                                                </div>
+                                                            </td>
+                                                            <td className="size-px whitespace-nowrap">
+                                                                <div className="px-6 py-2">
+                                                                    <p className="text-sm text-gray-500 dark:text-neutral-500 line-clamp-2">
+                                                                        {record.description}
                                                                     </p>
                                                                 </div>
                                                             </td>
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.vehicle_type}
-                                                                    </p>
-                                                                </div>
-                                                            </td>
-                                                            <td className="size-px whitespace-nowrap">
-                                                                <div className="px-6 py-2">
-                                                                    <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {vehicle.current_mileage?.toLocaleString() || '-'}
+                                                                        {new Date(record.scheduled_date).toLocaleDateString()}
                                                                     </p>
                                                                 </div>
                                                             </td>
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <span className={`inline-flex items-center gap-1.5 py-1 px-2 rounded-full text-xs font-medium ${
-                                                                        vehicle.status === 'available' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500' :
-                                                                        vehicle.status === 'in_use' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' :
-                                                                        vehicle.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500' :
+                                                                        record.status === 'scheduled' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500' :
+                                                                        record.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500' :
+                                                                        record.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' :
                                                                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500'
                                                                     }`}>
-                                                                        {vehicle.status.replace('_', ' ').charAt(0).toUpperCase() + vehicle.status.replace('_', ' ').slice(1)}
+                                                                        {record.status.replace('_', ' ').charAt(0).toUpperCase() + record.status.replace('_', ' ').slice(1)}
                                                                     </span>
                                                                 </div>
                                                             </td>
-                                                            {user.role !== "3" && (
+                                                            {user?.role !== "3" && (
                                                                 <>
                                                                     <td className="size-px whitespace-nowrap">
                                                                         <div className="px-6 py-1.5">
                                                                             <button
-                                                                                onClick={() => removeVehicle(vehicle.vehicle_id)}
+                                                                                onClick={() => removeMaintenance(record.maintenance_id)}
                                                                                 className="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium dark:text-blue-500"
                                                                             >
                                                                                 Delete
@@ -539,23 +489,23 @@ export const Vehicles = () => {
                                                                     <td className="size-px whitespace-nowrap">
                                                                         <div className="px-6 py-1.5">
                                                                             <button
-                                                                                onClick={() => toggleDialog(vehicle)}
+                                                                                onClick={() => toggleDialog(record)}
                                                                                 className="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium dark:text-blue-500"
                                                                             >
                                                                                 Edit
                                                                             </button>
                                                                         </div>
                                                                         {/* Edit Dialog */}
-                                                                        <div className={`dialog-container dialog-${vehicle.vehicle_id}`} id="dialog-1">
-                                                                            <div className={`dialog-container dialog-${vehicle.vehicle_id} bg-neutral-900 opacity-5 size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y`}></div>
-                                                                            <div className={`dialog-container dialog-${vehicle.vehicle_id} size-full fixed top-0 start-0 z-[81] overflow-x-hidden overflow-y`}>
-                                                                                <div className={`dialog-container dialog-${vehicle.vehicle_id} ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto`}>
+                                                                        <div className={`dialog-container dialog-${record.maintenance_id}`} id="dialog-1">
+                                                                            <div className={`dialog-container dialog-${record.maintenance_id} bg-neutral-900 opacity-5 size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y`}></div>
+                                                                            <div className={`dialog-container dialog-${record.maintenance_id} size-full fixed top-0 start-0 z-[81] overflow-x-hidden overflow-y`}>
+                                                                                <div className={`dialog-container dialog-${record.maintenance_id} ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto`}>
                                                                                     <div className="flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
-                                                                                        <form onSubmit={(e) => updateVehicle(e, vehicle.vehicle_id)}>
+                                                                                        <form onSubmit={(e) => updateMaintenance(e, record.maintenance_id)}>
                                                                                             <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
-                                                                                                <h3 className="font-bold text-gray-800 dark:text-white">Vehicle Update</h3>
+                                                                                                <h3 className="font-bold text-gray-800 dark:text-white">Maintenance Update</h3>
                                                                                                 <button
-                                                                                                    onClick={() => toggleDialog(vehicle)}
+                                                                                                    onClick={() => toggleDialog(record)}
                                                                                                     type="button"
                                                                                                     className="size-8 inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:bg-gray-200 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-400 dark:focus:bg-neutral-600"
                                                                                                 >
@@ -567,96 +517,117 @@ export const Vehicles = () => {
                                                                                                 </button>
                                                                                             </div>
                                                                                             <div className="p-4 overflow-y-auto space-y-4">
-                                                                                                {/* License Plate */}
+                                                                                                {/* Vehicle ID */}
                                                                                                 <div>
-                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">License Plate</label>
+                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle ID</label>
                                                                                                     <input
-                                                                                                        onChange={(e) => setUpdateDataForm({...updateDataForm, license_plate: e.target.value})}
-                                                                                                        value={updateDataForm.license_plate}
-                                                                                                        type="text"
+                                                                                                        onChange={(e) => setUpdateDataForm({...updateDataForm, vehicle_id: e.target.value})}
+                                                                                                        value={updateDataForm.vehicle_id}
+                                                                                                        type="number"
                                                                                                         required
                                                                                                         className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                        placeholder="Enter license plate"
+                                                                                                        placeholder="Enter vehicle ID"
                                                                                                     />
                                                                                                 </div>
 
-                                                                                                {/* Make and Model */}
+                                                                                                {/* Maintenance Type */}
+                                                                                                <div>
+                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Maintenance Type</label>
+                                                                                                    <select
+                                                                                                        onChange={(e) => setUpdateDataForm({...updateDataForm, maintenance_type: e.target.value})}
+                                                                                                        value={updateDataForm.maintenance_type}
+                                                                                                        className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+                                                                                                        required
+                                                                                                    >
+                                                                                                        <option value="routine">Routine</option>
+                                                                                                        <option value="repair">Repair</option>
+                                                                                                        <option value="overhaul">Overhaul</option>
+                                                                                                        <option value="inspection">Inspection</option>
+                                                                                                    </select>
+                                                                                                </div>
+
+                                                                                                {/* Description */}
+                                                                                                <div>
+                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Description</label>
+                                                                                                    <textarea
+                                                                                                        onChange={(e) => setUpdateDataForm({...updateDataForm, description: e.target.value})}
+                                                                                                        value={updateDataForm.description}
+                                                                                                        required
+                                                                                                        className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                                                        placeholder="Enter description"
+                                                                                                        rows={3}
+                                                                                                    />
+                                                                                                </div>
+
+                                                                                                {/* Dates */}
                                                                                                 <div className="grid grid-cols-2 gap-4">
                                                                                                     <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Make</label>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Scheduled Date</label>
                                                                                                         <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, make: e.target.value})}
-                                                                                                            value={updateDataForm.make}
-                                                                                                            type="text"
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, scheduled_date: e.target.value})}
+                                                                                                            value={formatDateForInput(updateDataForm.scheduled_date)}
+                                                                                                            type="date"
                                                                                                             required
                                                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                            placeholder="Enter make"
                                                                                                         />
                                                                                                     </div>
                                                                                                     <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Model</label>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Completed Date</label>
                                                                                                         <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, model: e.target.value})}
-                                                                                                            value={updateDataForm.model}
-                                                                                                            type="text"
-                                                                                                            required
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, completed_date: e.target.value})}
+                                                                                                            value={formatDateForInput(updateDataForm.completed_date)}
+                                                                                                            type="date"
                                                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                            placeholder="Enter model"
                                                                                                         />
                                                                                                     </div>
                                                                                                 </div>
 
-                                                                                                {/* Year and Type */}
+                                                                                                {/* Cost and Mileage */}
                                                                                                 <div className="grid grid-cols-2 gap-4">
                                                                                                     <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Year</label>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Cost</label>
                                                                                                         <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, year: e.target.value})}
-                                                                                                            value={updateDataForm.year}
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, cost: e.target.value})}
+                                                                                                            value={updateDataForm.cost}
                                                                                                             type="number"
-                                                                                                            required
+                                                                                                            step="0.01"
                                                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                            placeholder="Enter year"
+                                                                                                            placeholder="Enter cost"
                                                                                                         />
                                                                                                     </div>
                                                                                                     <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle Type</label>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Mileage</label>
                                                                                                         <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, vehicle_type: e.target.value})}
-                                                                                                            value={updateDataForm.vehicle_type}
-                                                                                                            type="text"
-                                                                                                            required
-                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                            placeholder="Enter type"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </div>
-
-                                                                                                {/* Mileage and Fuel Type */}
-                                                                                                <div className="grid grid-cols-2 gap-4">
-                                                                                                    <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Current Mileage</label>
-                                                                                                        <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, current_mileage: e.target.value})}
-                                                                                                            value={updateDataForm.current_mileage}
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, mileage: e.target.value})}
+                                                                                                            value={updateDataForm.mileage}
                                                                                                             type="number"
                                                                                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
                                                                                                             placeholder="Enter mileage"
                                                                                                         />
                                                                                                     </div>
+                                                                                                </div>
+
+                                                                                                {/* Service Provider and Technician */}
+                                                                                                <div className="grid grid-cols-2 gap-4">
                                                                                                     <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Fuel Type</label>
-                                                                                                        <select
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, fuel_type: e.target.value})}
-                                                                                                            value={updateDataForm.fuel_type}
-                                                                                                            className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
-                                                                                                            required
-                                                                                                        >
-                                                                                                            <option value="gasoline">Gasoline</option>
-                                                                                                            <option value="diesel">Diesel</option>
-                                                                                                            <option value="electric">Electric</option>
-                                                                                                            <option value="hybrid">Hybrid</option>
-                                                                                                        </select>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Service Provider</label>
+                                                                                                        <input
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, service_provider: e.target.value})}
+                                                                                                            value={updateDataForm.service_provider}
+                                                                                                            type="text"
+                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                                                            placeholder="Enter service provider"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Technician Name</label>
+                                                                                                        <input
+                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, technician_name: e.target.value})}
+                                                                                                            value={updateDataForm.technician_name}
+                                                                                                            type="text"
+                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                                                            placeholder="Enter technician name"
+                                                                                                        />
                                                                                                     </div>
                                                                                                 </div>
 
@@ -669,57 +640,11 @@ export const Vehicles = () => {
                                                                                                         className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                                                                                                         required
                                                                                                     >
-                                                                                                        <option value="available">Available</option>
-                                                                                                        <option value="in_use">In Use</option>
-                                                                                                        <option value="maintenance">Maintenance</option>
-                                                                                                        <option value="out_of_service">Out of Service</option>
+                                                                                                        <option value="scheduled">Scheduled</option>
+                                                                                                        <option value="in_progress">In Progress</option>
+                                                                                                        <option value="completed">Completed</option>
+                                                                                                        <option value="cancelled">Cancelled</option>
                                                                                                     </select>
-                                                                                                </div>
-
-                                                                                                {/* Maintenance Dates */}
-                                                                                                <div className="grid grid-cols-2 gap-4">
-                                                                                                    <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Last Maintenance Date</label>
-                                                                                                        <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, last_maintenance_date: formatDateForInput(e.target.value)})}
-                                                                                                            value={formatDateForInput(updateDataForm.last_maintenance_date)}
-                                                                                                            type="date"
-                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Next Maintenance Date</label>
-                                                                                                        <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, next_maintenance_date: formatDateForInput(e.target.value)})}
-                                                                                                            value={formatDateForInput(updateDataForm.next_maintenance_date)}
-                                                                                                            type="date"
-                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </div>
-
-                                                                                                {/* Purchase Info */}
-                                                                                                <div className="grid grid-cols-2 gap-4">
-                                                                                                    <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Purchase Date</label>
-                                                                                                        <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, purchase_date: formatDateForInput(e.target.value)})}
-                                                                                                            value={formatDateForInput(updateDataForm.purchase_date)}
-                                                                                                            type="date"
-                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        <label className="block text-sm font-medium mb-2 dark:text-white">Purchase Price</label>
-                                                                                                        <input
-                                                                                                            onChange={(e) => setUpdateDataForm({...updateDataForm, purchase_price: e.target.value})}
-                                                                                                            value={updateDataForm.purchase_price}
-                                                                                                            type="number"
-                                                                                                            step="0.01"
-                                                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                            placeholder="Enter price"
-                                                                                                        />
-                                                                                                    </div>
                                                                                                 </div>
 
                                                                                                 {/* Notes */}
@@ -737,7 +662,7 @@ export const Vehicles = () => {
                                                                                             <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t dark:border-neutral-700">
                                                                                                 <button
                                                                                                     className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
-                                                                                                    onClick={() => toggleDialog(vehicle)}
+                                                                                                    onClick={() => toggleDialog(record)}
                                                                                                     type="button"
                                                                                                 >
                                                                                                     Close
@@ -771,7 +696,7 @@ export const Vehicles = () => {
                                     <div>
                                         <p className="text-center sm:text-left text-sm text-gray-600 dark:text-neutral-400">
                                             <span className="font-semibold text-gray-800 dark:text-neutral-200">
-                                                {vehicles.length}
+                                                {maintenance.length}
                                             </span>{" "}
                                             results
                                         </p>
