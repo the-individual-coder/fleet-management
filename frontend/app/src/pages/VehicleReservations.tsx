@@ -152,13 +152,18 @@ export const Reservations = () => {
   const updateStatus = async (reservation_id: number, status: string) => {
     try {
       setIsLoading(true);
-      await axios.post(`${hostServer}/updateReservationStatus`, {
+      const res = await axios.post(`${hostServer}/updateReservationStatus`, {
         reservation_id,
         status,
         approved_by: user.username
       });
-      fetchReservations();
-      alert(`Reservation ${status} successfully!`);
+      if(res.data.error){
+        alert(res.data.error)
+      }else{
+        fetchReservations();
+        alert(`Reservation ${status} successfully!`);
+      }
+
     } catch (err) {
       console.error("Error updating status:", err);
     } finally {
