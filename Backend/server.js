@@ -50,6 +50,10 @@ const maintenance_request = require('./routes/maintenance_request')
 const procurement_request = require('./routes/procurement_request'); 
 const SpareParts = require('./routes/spare_parts');
 const vehicle = require('./routes/vehicles');
+const maintenanceFleet = require('./routes/maintenanceFleet');
+const vendor = require('./routes/vendors');
+const vendorRequest = require('./routes/vendorRequest');
+const reservation = require('./routes/vehicleReservations');
 
 app.use(authRoute)
 app.use(assets)
@@ -63,6 +67,10 @@ app.use(maintenance_request)
 app.use(procurement_request)
 app.use(SpareParts)
 app.use(vehicle)
+app.use(maintenanceFleet)
+app.use(vendor)
+app.use(vendorRequest)
+app.use(reservation)
 app.get("/", (req,res)=>{
   res.json({message:"HEllo"})
 })

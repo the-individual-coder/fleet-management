@@ -107,12 +107,11 @@ authRoute.post('/register', async (req, res)=>
 {
   try {
     const {email, username, password} = req.body
-    const role = 'user'
     const hashedPassword = await bcrypt.hash(password, 10)
 
     if(username && password && email){
-      const sqlQuery = `INSERT INTO users ( username, email, password, role) 
-      VALUES('${username}','${email}', '${hashedPassword}', '${role}' )`;
+      const sqlQuery = `INSERT INTO users ( username, email, password) 
+      VALUES('${username}','${email}', '${hashedPassword}' )`;
   
       const result = await db(sqlQuery)
       res.json(result)

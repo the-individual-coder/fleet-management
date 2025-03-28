@@ -1,7 +1,7 @@
 const express = require('express')
 const vehicle = express.Router()
 const db = require('../database/connection')
-
+const formatDate = require('../utils/global')
 // Get all vehicles
 vehicle.get("/getVehicles", async (req, res) => {
     const query = "SELECT * FROM vehicles";
@@ -73,6 +73,7 @@ vehicle.post("/updateVehicle", async (req, res) => {
         notes
     } = req.body;
 
+    console.log("the body", req.body)
     const query = `
         UPDATE vehicles SET
             license_plate = '${license_plate}',
@@ -83,9 +84,9 @@ vehicle.post("/updateVehicle", async (req, res) => {
             current_mileage = ${current_mileage || 'NULL'},
             fuel_type = '${fuel_type}',
             status = '${status || 'available'}',
-            last_maintenance_date = ${last_maintenance_date ? `'${last_maintenance_date}'` : 'NULL'},
-            next_maintenance_date = ${next_maintenance_date ? `'${next_maintenance_date}'` : 'NULL'},
-            purchase_date = ${purchase_date ? `'${purchase_date}'` : 'NULL'},
+            last_maintenance_date = ${last_maintenance_date ? `'${formatDate(last_maintenance_date)}'` : 'NULL'},
+            next_maintenance_date = ${next_maintenance_date ? `'${formatDate(next_maintenance_date)}'` : 'NULL'},
+            purchase_date = ${purchase_date ? `'${formatDate(purchase_date)}'` : 'NULL'},
             purchase_price = ${purchase_price || 'NULL'},
             notes = ${notes ? `'${notes.replace(/'/g, "''")}'` : 'NULL'}
         WHERE vehicle_id = ${vehicle_id}
