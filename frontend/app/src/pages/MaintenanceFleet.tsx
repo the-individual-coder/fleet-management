@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
+import VehicleI from "./Vehicles";
 
 export default interface MaintenanceI {
     maintenance_id: number;
     vehicle_id: number;
+    vehicle_name: string;
     maintenance_type: string;
     description: string;
     scheduled_date: string;
@@ -23,6 +25,7 @@ export const MaintenanceFleet = () => {
     const hostServer = import.meta.env.VITE_SERVER_HOST;
     const { setIsLoading, user } = useOutletContext<OutletContextType>();
     const [maintenance, setMaintenance] = useState<MaintenanceI[]>([]);
+    const [vehicles, setVehicles] = useState<VehicleI[]>([])
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
     const lastIndexPage = currentPage * itemsPerPage;
@@ -64,6 +67,15 @@ export const MaintenanceFleet = () => {
         notes: ""
     });
 
+      const fetchVehicles = async () => {
+        try {
+          const response = await axios.get(`${hostServer}/getVehicles`);
+          console.log("the res", response)
+          setVehicles(response.data);
+        } catch (err) {
+          console.error("Error fetching vehicles:", err);
+        }
+      };
     // Fetch all maintenance records
     const fetchMaintenance = async () => {
         try {
@@ -84,6 +96,7 @@ export const MaintenanceFleet = () => {
             e.preventDefault();
             await axios.post(`${hostServer}/registerMaintenance`, addDataForm);
             fetchMaintenance();
+            fetchVehicles();
             alert("Maintenance record added successfully!");
             setAddDataForm({
                 vehicle_id: "",
@@ -115,6 +128,7 @@ export const MaintenanceFleet = () => {
                 maintenance_id: id
             });
             fetchMaintenance();
+            fetchVehicles();
             alert("Maintenance record updated successfully!");
             setIsLoading(false);
         } catch (err) {
@@ -130,6 +144,7 @@ export const MaintenanceFleet = () => {
             await axios.delete(`${hostServer}/removeMaintenance/${id}`);
             setMaintenance(maintenance.filter(record => record.maintenance_id !== id));
             alert("Maintenance record deleted successfully!");
+            fetchVehicles();
             setIsLoading(false);
         } catch (err) {
             console.error(err);
@@ -160,6 +175,7 @@ export const MaintenanceFleet = () => {
 
     useEffect(() => {
         fetchMaintenance();
+        fetchVehicles();
     }, []);
 
     return (
@@ -223,14 +239,20 @@ export const MaintenanceFleet = () => {
                                                                 {/* Vehicle ID */}
                                                                 <div>
                                                                     <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle ID</label>
-                                                                    <input
-                                                                        onChange={(e) => setAddDataForm({...addDataForm, vehicle_id: e.target.value})}
-                                                                        value={addDataForm.vehicle_id}
-                                                                        type="number"
-                                                                        required
-                                                                        className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                        placeholder="Enter vehicle ID"
-                                                                    />
+                                                                    <select
+                                  value={addDataForm.vehicle_id}
+                                  onChange={(e) => setAddDataForm({...addDataForm, vehicle_id: e.target.value})}
+                                  required
+                                  className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+                                >
+                                  <option value="">Select Vehicle</option>
+                                  {vehicles.map(vehicle => (
+                                    <option key={vehicle.vehicle_id} value={vehicle.vehicle_id}>
+                                      {`${vehicle.make} ${vehicle.model} ${vehicle.year} - ${vehicle.license_plate}`}
+                                    </option>
+                                  ))}
+                                </select>
+    
                                                                 </div>
 
                                                                 {/* Maintenance Type */}
@@ -437,7 +459,7 @@ export const MaintenanceFleet = () => {
                                                             <td className="size-px whitespace-nowrap">
                                                                 <div className="px-6 py-2">
                                                                     <p className="text-sm text-gray-500 dark:text-neutral-500">
-                                                                        {record.vehicle_id}
+                                                                        {record.vehicle_name}
                                                                     </p>
                                                                 </div>
                                                             </td>
@@ -519,15 +541,21 @@ export const MaintenanceFleet = () => {
                                                                                             <div className="p-4 overflow-y-auto space-y-4">
                                                                                                 {/* Vehicle ID */}
                                                                                                 <div>
-                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Vehicle ID</label>
-                                                                                                    <input
-                                                                                                        onChange={(e) => setUpdateDataForm({...updateDataForm, vehicle_id: e.target.value})}
-                                                                                                        value={updateDataForm.vehicle_id}
-                                                                                                        type="number"
-                                                                                                        required
-                                                                                                        className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
-                                                                                                        placeholder="Enter vehicle ID"
-                                                                                                    />
+                                                                                                    <label className="block text-sm font-medium mb-2 dark:text-white">Vehicles</label>
+                                                            
+                                                                                                                                                                  <select
+                                  value={updateDataForm.vehicle_id}
+                                  onChange={(e) => setUpdateDataForm({...updateDataForm, vehicle_id: e.target.value})}
+                                  required
+                                  className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
+                                >
+                                  <option value="">Select Vehicle</option>
+                                  {vehicles.map(vehicle => (
+                                    <option key={vehicle.vehicle_id} value={vehicle.vehicle_id}>
+                                      {`${vehicle.make} ${vehicle.model} ${vehicle.year} - ${vehicle.license_plate}`}
+                                    </option>
+                                  ))}
+                                </select>
                                                                                                 </div>
 
                                                                                                 {/* Maintenance Type */}

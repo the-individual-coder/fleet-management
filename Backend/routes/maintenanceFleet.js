@@ -4,7 +4,7 @@ const db = require('../database/connection')
 const formatDate = require('../utils/global')
 // Get all maintenance records
 maintenanceFleet.get("/getMaintenance", async (req, res) => {
-    const query = "SELECT * FROM maintenance";
+    const query = "SELECT m.*, CONCAT(v.make, ' ', v.model, ' (', v.year, ')') as vehicle_name FROM maintenance m INNER JOIN vehicles v ON m.vehicle_id = v.vehicle_id";
     const result = await db(query);
     res.json(result);
 });
