@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export default interface VehicleI {
     vehicle_id: number;
     license_plate: string;
@@ -83,68 +84,81 @@ export const Vehicles = () => {
         }
     };
 
-    // Function to register a new vehicle
-    const registerVehicle = async (e: any) => {
-        try {
-            setIsLoading(true);
-            e.preventDefault();
-            await axios.post(`${hostServer}/registerVehicle`, addDataForm);
-            fetchVehicles();
-            alert("Vehicle added successfully!");
-            setAddDataForm({
-                license_plate: "",
-                make: "",
-                model: "",
-                year: "",
-                vehicle_type: "",
-                current_mileage: "",
-                fuel_type: "",
-                status: "available",
-                last_maintenance_date: "",
-                next_maintenance_date: "",
-                purchase_date: "",
-                purchase_price: "",
-                notes: ""
-            });
-            setIsLoading(false);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-        }
-    };
+ // Vehicle Management Operations with Logging
 
-    // Function to update a vehicle
-    const updateVehicle = async (e: any, id: number) => {
-        try {
-            e.preventDefault();
-            setIsLoading(true);
-            await axios.post(`${hostServer}/updateVehicle`, {
-                ...updateDataForm,
-                vehicle_id: id
-            });
-            fetchVehicles();
-            alert("Vehicle updated successfully!");
-            setIsLoading(false);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-        }
-    };
+// Register new vehicle
+const registerVehicle = async (e: React.FormEvent) => {
+    try {
+        setIsLoading(true);
+        e.preventDefault();
+        await axios.post(`${hostServer}/registerVehicle`, addDataForm);
+        fetchVehicles();
+        alert("Vehicle added successfully!");
+        
+        logAction(user, `Registered new vehicle: ${addDataForm.license_plate} (${addDataForm.make} ${addDataForm.model} ${addDataForm.year})`);
+        
+        setAddDataForm({
+            license_plate: "",
+            make: "",
+            model: "",
+            year: "",
+            vehicle_type: "",
+            current_mileage: "",
+            fuel_type: "",
+            status: "available",
+            last_maintenance_date: "",
+            next_maintenance_date: "",
+            purchase_date: "",
+            purchase_price: "",
+            notes: ""
+        });
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
-    // Function to delete a vehicle
-    const removeVehicle = async (id: number) => {
+// Update vehicle details
+const updateVehicle = async (e: React.FormEvent, id: number) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/updateVehicle`, {
+            ...updateDataForm,
+            vehicle_id: id
+        });
+        fetchVehicles();
+        alert("Vehicle updated successfully!");
+        
+        logAction(user, `Updated vehicle ID ${id} (License: ${updateDataForm.license_plate || 'unchanged'}, Status: ${updateDataForm.status || 'unchanged'})`);
+        
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Delete vehicle
+const removeVehicle = async (id: number) => {
+    if (confirm("Are you sure you want to permanently delete this vehicle?")) {
         try {
             setIsLoading(true);
             await axios.delete(`${hostServer}/removeVehicle/${id}`);
             setVehicles(vehicles.filter(vehicle => vehicle.vehicle_id !== id));
             alert("Vehicle deleted successfully!");
+            
+            logAction(user, `Permanently deleted vehicle ID ${id}`);
+            
             fetchVehicles();
-            setIsLoading(false);
         } catch (err) {
             console.error(err);
+        } finally {
             setIsLoading(false);
         }
-    };
+    }
+};
 
     // Toggle edit dialog
     const toggleDialog = (data: VehicleI) => {

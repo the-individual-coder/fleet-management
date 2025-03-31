@@ -3,9 +3,10 @@ import { useEffect, useState } from "react"
 import { OutletContextType, users } from "../layouts/MainLayout"
 import { useNavigate, useOutletContext } from "react-router-dom"
 import React from "react"
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export const EditUsers = () => {
-  const { setIsLoading } = useOutletContext<OutletContextType>()
+  const { setIsLoading, user } = useOutletContext<OutletContextType>()
   const hostServer = import.meta.env.VITE_SERVER_HOST
   const [devices, setDevices] = useState<users[]>([])
   const [deviceID, setDeviceID] = useState(0)
@@ -50,22 +51,23 @@ export const EditUsers = () => {
     }
 
   }
-  const handleUpdate = async (e: any) => {
-    e.preventDefault()
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const res = await axios.post(`${hostServer}/updateUser`, {
-        username: deviceName,
-        email:deviceStatus,
-        userID: deviceID,
-        role:deviceRole
-      })
-      console.log(res)
-      alert("Updated Successfully!")
-      navigate("/users/view")
+         await axios.post(`${hostServer}/updateUser`, {
+            username: deviceName,
+            email: deviceStatus,
+            userID: deviceID,
+            role: deviceRole
+        });
+        
+        alert("Updated Successfully!");
+        logAction(user, `Updated user ${deviceID} (New username: ${deviceName}, Role: ${deviceRole})`);
+        navigate("/users/view");
     } catch (error) {
-      console.log(error)
+        console.error("Error updating user:", error);
     }
-  }
+};
   return (
     <>
       <>

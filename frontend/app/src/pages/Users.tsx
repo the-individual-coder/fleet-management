@@ -5,13 +5,14 @@ import {OutletContextType, users } from "../layouts/MainLayout";
 import React from "react";
 import axios from "axios";
 import { useOutletContext } from "react-router-dom";
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export const ViewItems = () => {
     // const { importItemsData, setImportItemsData } = useOutletContext<OutletContextType>()
     // const [isImported, setIsImported] = useState<boolean>(false);
     // const [ProductName, setProductName] = useState("")
     // const [Price, setPrice] = useState(0)
-    const {setIsLoading} = useOutletContext<OutletContextType>()
+    const {setIsLoading, user} = useOutletContext<OutletContextType>()
     const [usersDataStorage, setUsersDataStorage] = useState<users[]>([])
     // const fileInput = useRef<HTMLInputElement>(null)
     const [currentPage, setCurrentPage] = useState(1)
@@ -48,44 +49,54 @@ export const ViewItems = () => {
         }
 
     }
-    const removeData = async (id: number) => {
+ // Delete User
+const removeData = async (id: number) => {
+    if (confirm("Are you sure you want to permanently delete this user?")) {
         try {
-            setIsLoading(true)
-            const res = await axios.delete(`${hostServer}/removeUser/${id}`)
-            console.log(res)
-            alert("Deleted Successfully!")
-            setIsLoading(false)
-            location.reload()
+            setIsLoading(true);
+            await axios.delete(`${hostServer}/removeUser/${id}`);
+            alert("User deleted successfully!");
+            logAction(user, `Permanently deleted user ID ${id}`);
+            location.reload();
         } catch (error) {
-            console.log(error)
-            setIsLoading(false)
+            console.error("Error deleting user:", error);
+        } finally {
+            setIsLoading(false);
         }
     }
-    const addData = async (e: any) => {
-        setIsLoading(true)
-        if(addUserForm.retypePassword !== addUserForm.password){
-            e.preventDefault()
-            setWrongCredentials(true)
-            setTimeout(()=>{
-              setWrongCredentials(false)
-            },3000)
-            setIsLoading(false)
-          }else{
-        e.preventDefault()
-        try {
-           await axios.post(`${hostServer}/register`,{
-                email:addUserForm.email,
-                username:addUserForm.username,
-                password:addUserForm.password
-            }) 
-            alert("Created Successfully!")
-            setIsLoading(true)
-            location.reload()
-        } catch (error) {
-            setIsLoading(false)
-            console.log(error)
-        }}
+};
+
+// Add New User
+const addData = async (e: React.FormEvent) => {
+    setIsLoading(true);
+    
+    if (addUserForm.retypePassword !== addUserForm.password) {
+        e.preventDefault();
+        setWrongCredentials(true);
+        setTimeout(() => {
+            setWrongCredentials(false);
+        }, 3000);
+        setIsLoading(false);
+        return;
     }
+
+    try {
+        e.preventDefault();
+        await axios.post(`${hostServer}/register`, {
+            email: addUserForm.email,
+            username: addUserForm.username,
+            password: addUserForm.password
+        });
+        
+        alert("User created successfully!");
+        logAction(user, `Created new user: ${addUserForm.username} (Email: ${addUserForm.email})`);
+        location.reload();
+    } catch (error) {
+        console.error("Error creating user:", error);
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     return (
         <>

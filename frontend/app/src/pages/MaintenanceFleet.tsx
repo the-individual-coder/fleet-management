@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
+import {useAuditLog} from '../hooks/useAuditLog.ts'
 import React from "react";
 import VehicleI from "./Vehicles";
 
@@ -20,7 +21,7 @@ export default interface MaintenanceI {
     mileage: number | null;
     notes: string | null;
 }
-
+        const { logAction } = useAuditLog(); 
 export const MaintenanceFleet = () => {
     const hostServer = import.meta.env.VITE_SERVER_HOST;
     const { setIsLoading, user } = useOutletContext<OutletContextType>();
@@ -89,68 +90,81 @@ export const MaintenanceFleet = () => {
         }
     };
 
-    // Register new maintenance
-    const registerMaintenance = async (e: any) => {
-        try {
-            setIsLoading(true);
-            e.preventDefault();
-            await axios.post(`${hostServer}/registerMaintenance`, addDataForm);
-            fetchMaintenance();
-            fetchVehicles();
-            alert("Maintenance record added successfully!");
-            setAddDataForm({
-                vehicle_id: "",
-                maintenance_type: "routine",
-                description: "",
-                scheduled_date: "",
-                completed_date: "",
-                cost: "",
-                service_provider: "",
-                technician_name: "",
-                status: "scheduled",
-                mileage: "",
-                notes: ""
-            });
-            setIsLoading(false);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-        }
-    };
+// Register new maintenance
+const registerMaintenance = async (e: any) => {
+    try {
+        setIsLoading(true);
+        e.preventDefault();
+        await axios.post(`${hostServer}/registerMaintenance`, addDataForm);
+        fetchMaintenance();
+        fetchVehicles();
+        alert("Maintenance record has been successfully added.");
+        
+        // Log the action with a formal message
+        logAction(user, `User ${user.user_id} registered a new maintenance record for vehicle ID: ${addDataForm.vehicle_id}.`);
+        
+        setAddDataForm({
+            vehicle_id: "",
+            maintenance_type: "routine",
+            description: "",
+            scheduled_date: "",
+            completed_date: "",
+            cost: "",
+            service_provider: "",
+            technician_name: "",
+            status: "scheduled",
+            mileage: "",
+            notes: ""
+        });
+        setIsLoading(false);
+    } catch (err) {
+        console.error(err);
+        setIsLoading(false);
+    }
+};
 
-    // Update maintenance
-    const updateMaintenance = async (e: any, id: number) => {
-        try {
-            e.preventDefault();
-            setIsLoading(true);
-            await axios.post(`${hostServer}/updateMaintenance`, {
-                ...updateDataForm,
-                maintenance_id: id
-            });
-            fetchMaintenance();
-            fetchVehicles();
-            alert("Maintenance record updated successfully!");
-            setIsLoading(false);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-        }
-    };
+// Update maintenance
+const updateMaintenance = async (e: any, id: number) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/updateMaintenance`, {
+            ...updateDataForm,
+            maintenance_id: id
+        });
+        fetchMaintenance();
+        fetchVehicles();
+        alert("Maintenance record has been successfully updated.");
+        
+        // Log the action with a formal message
+        logAction(user, `User ${user.user_id} updated maintenance record ID: ${id}.`);
+        
+        setIsLoading(false);
+    } catch (err) {
+        console.error(err);
+        setIsLoading(false);
+    }
+};
 
-    // Delete maintenance
-    const removeMaintenance = async (id: number) => {
-        try {
-            setIsLoading(true);
-            await axios.delete(`${hostServer}/removeMaintenance/${id}`);
-            setMaintenance(maintenance.filter(record => record.maintenance_id !== id));
-            alert("Maintenance record deleted successfully!");
-            fetchVehicles();
-            setIsLoading(false);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-        }
-    };
+// Delete maintenance
+const removeMaintenance = async (id: number) => {
+    try {
+        setIsLoading(true);
+        await axios.delete(`${hostServer}/removeMaintenance/${id}`);
+        setMaintenance(maintenance.filter(record => record.maintenance_id !== id));
+        alert("Maintenance record has been successfully deleted.");
+        fetchVehicles();
+        
+        // Log the action with a formal message
+        logAction(user, `User ${user.user_id} deleted maintenance record ID: ${id}.`);
+        
+        setIsLoading(false);
+    } catch (err) {
+        console.error(err);
+        setIsLoading(false);
+    }
+};
+
 
     // Toggle edit dialog
     const toggleDialog = (data: MaintenanceI) => {

@@ -4,7 +4,8 @@ import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import VendorI from "./Vendors";
 import React from "react";
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export default interface VendorRequestI {
     request_id: number;
     vendor_id: number;
@@ -76,64 +77,74 @@ export const VendorRequests = () => {
         }
     };
 
-    // Create new vendor request
-    const createVendorRequest = async (e: React.FormEvent) => {
+  // Vendor Request Operations with Logging
+
+// Create new vendor request
+const createVendorRequest = async (e: React.FormEvent) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/createVendorRequest`, addDataForm);
+        fetchVendorRequests();
+        alert("Request created successfully!");
+        
+        logAction(user, `Created new vendor request for vendor ${addDataForm.vendor_id} (Item: ${addDataForm.requested_item}, Needed by: ${addDataForm.needed_by_date})`);
+        
+        setAddDataForm({
+            vendor_id: "",
+            requested_item: "",
+            needed_by_date: "",
+            status: "pending",
+            notes: ""
+        });
+        (document.getElementById('hs-request-modal') as HTMLElement)?.classList.add('hidden');
+    } catch (err) {
+        console.error("Error creating request:", err);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Update vendor request
+const updateVendorRequest = async (e: React.FormEvent, request_id: number) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/updateVendorRequest`, {
+            ...updateDataForm,
+            request_id
+        });
+        fetchVendorRequests();
+        alert("Request updated successfully!");
+        
+        logAction(user, `Updated vendor request ${request_id} (New status: ${updateDataForm.status})`);
+        
+        toggleDialog(null);
+    } catch (err) {
+        console.error("Error updating request:", err);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Delete vendor request
+const deleteVendorRequest = async (request_id: number) => {
+    if (confirm("Are you sure you want to delete this request?")) {
         try {
-            e.preventDefault();
             setIsLoading(true);
-            await axios.post(`${hostServer}/createVendorRequest`, addDataForm);
-            fetchVendorRequests();
-            alert("Request created successfully!");
-            setAddDataForm({
-                vendor_id: "",
-                requested_item: "",
-                needed_by_date: "",
-                status: "pending",
-                notes: ""
-            });
-            (document.getElementById('hs-request-modal') as HTMLElement)?.classList.add('hidden');
+            await axios.delete(`${hostServer}/deleteVendorRequest/${request_id}`);
+            setRequests(requests.filter(req => req.request_id !== request_id));
+            alert("Request deleted successfully!");
+            
+            logAction(user, `Deleted vendor request ${request_id}`);
+            
         } catch (err) {
-            console.error("Error creating request:", err);
+            console.error("Error deleting request:", err);
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // Update vendor request
-    const updateVendorRequest = async (e: React.FormEvent, request_id: number) => {
-        try {
-            e.preventDefault();
-            setIsLoading(true);
-            await axios.post(`${hostServer}/updateVendorRequest`, {
-                ...updateDataForm,
-                request_id
-            });
-            fetchVendorRequests();
-            alert("Request updated successfully!");
-            toggleDialog(null);
-        } catch (err) {
-            console.error("Error updating request:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
-    // Delete vendor request
-    const deleteVendorRequest = async (request_id: number) => {
-        if (confirm("Are you sure you want to delete this request?")) {
-            try {
-                setIsLoading(true);
-                await axios.delete(`${hostServer}/deleteVendorRequest/${request_id}`);
-                setRequests(requests.filter(req => req.request_id !== request_id));
-                alert("Request deleted successfully!");
-            } catch (err) {
-                console.error("Error deleting request:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-    };
+    }
+};
 
     // Toggle edit dialog
     const toggleDialog = (request: VendorRequestI | null) => {

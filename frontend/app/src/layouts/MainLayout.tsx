@@ -327,15 +327,15 @@ export const MainLayout = () => {
           <div className="relative flex flex-col h-full max-h-full">
             <div className="px-6 pt-4">
               {/* Logo */}
-              <Link
+              <a
                 className="flex justify-start items-center rounded-xl text-xl font-semibold"
-                to="/"
+                href="/"
                 onClick={()=>{setBreadCrumb("Dashboard")}}
                 aria-label="Preline"
               >
                 <img src="/logo.png" alt="Logo" className='object-contain w-20 h-20' />
                 <p className='text-md'>Logistics</p>
-              </Link>
+              </a>
               {/* End Logo */}
             </div>
             {/* Content */}
@@ -346,9 +346,9 @@ export const MainLayout = () => {
               >
                 <ul className="flex flex-col space-y-1">
                  <li>
-                    <Link
+                    <a
                       className="flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-gray-800 rounded-lg hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:bg-neutral-700 dark:text-white"
-                      to="/"
+                      href="/"
                       onClick={()=>{setBreadCrumb("Dashboard")}}
                     >
                       <svg
@@ -367,7 +367,7 @@ export const MainLayout = () => {
                         <polyline points="9 22 9 12 15 12 15 22" />
                       </svg>
                       Dashboard
-                    </Link>
+                    </a>
                   </li>
                   <li>
                     <Link

@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export default interface ReservationI {
   reservation_id: number;
   vehicle_id: number;
@@ -119,132 +120,146 @@ export const Reservations = () => {
     }
   };
 
-  // Create new reservation
-  const createReservation = async (e: React.FormEvent) => {
-    try {
-      e.preventDefault();
-      setIsLoading(true);
-      const res = await axios.post(`${hostServer}/createReservation`, addDataForm);
-      console.log("tesdasd", res)
-      if(res.data.error){
-        alert(res.data.error)
-      }else{
-        fetchReservations();
-        alert("Reservation created successfully!");
-        setAddDataForm({
-          vehicle_id: "",
-          user_name: "",
-          purpose: "",
-          start_date: "",
-          end_date: ""
-        });
-        (document.getElementById('hs-reservation-modal') as HTMLElement)?.classList.add('hidden');
-      }
+// Reservation Operations with Logging
 
-    } catch (err) {
-      console.error("Error creating reservation:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Update reservation status
-  const updateStatus = async (reservation_id: number, status: string) => {
-    try {
-      setIsLoading(true);
-      const res = await axios.post(`${hostServer}/updateReservationStatus`, {
-        reservation_id,
-        status,
-        approved_by: user.username
-      });
-      if(res.data.error){
-        alert(res.data.error)
-      }else{
-        fetchReservations();
-        alert(`Reservation ${status} successfully!`);
-      }
-
-    } catch (err) {
-      console.error("Error updating status:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Complete reservation
-  const completeReservation = async (reservation_id: number) => {
-    try {
-      setIsLoading(true);
-      await axios.post(`${hostServer}/completeReservation`, {
-        reservation_id,
-        ...completionForm
-      });
+// Create new reservation
+const createReservation = async (e: React.FormEvent) => {
+  try {
+    e.preventDefault();
+    setIsLoading(true);
+    const res = await axios.post(`${hostServer}/createReservation`, addDataForm);
+    
+    if (res.data.error) {
+      alert(res.data.error);
+    } else {
       fetchReservations();
-      alert("Reservation marked as completed!");
-      setCompletionForm({
-        actual_start_date: "",
-        actual_end_date: "",
-        mileage_before: "",
-        mileage_after: ""
+      alert("Reservation created successfully!");
+      logAction(user, `Created new reservation for vehicle ${addDataForm.vehicle_id} (${addDataForm.start_date} to ${addDataForm.end_date})`);
+      
+      setAddDataForm({
+        vehicle_id: "",
+        user_name: "",
+        purpose: "",
+        start_date: "",
+        end_date: ""
       });
-      (document.getElementById(`hs-completion-modal-${reservation_id}`) as HTMLElement)?.classList.add('hidden');
-    } catch (err) {
-      console.error("Error completing reservation:", err);
-    } finally {
-      setIsLoading(false);
+      (document.getElementById('hs-reservation-modal') as HTMLElement)?.classList.add('hidden');
     }
-  };
+  } catch (err) {
+    console.error("Error creating reservation:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-  // Update reservation details
-  const updateReservation = async (e: React.FormEvent, reservation_id: number) => {
-    try {
-      e.preventDefault();
-      setIsLoading(true);
-      await axios.post(`${hostServer}/updateReservation`, {
-        ...updateDataForm,
-        reservation_id
-      });
+// Update reservation status
+const updateStatus = async (reservation_id: number, status: string) => {
+  try {
+    setIsLoading(true);
+    const res = await axios.post(`${hostServer}/updateReservationStatus`, {
+      reservation_id,
+      status,
+      approved_by: user.username
+    });
+    
+    if (res.data.error) {
+      alert(res.data.error);
+    } else {
       fetchReservations();
-      alert("Reservation updated successfully!");
-      toggleDialog(null);
+      alert(`Reservation ${status} successfully!`);
+      logAction(user, `Updated reservation ${reservation_id} status to "${status}"`);
+    }
+  } catch (err) {
+    console.error("Error updating status:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Complete reservation
+const completeReservation = async (reservation_id: number) => {
+  try {
+    setIsLoading(true);
+    await axios.post(`${hostServer}/completeReservation`, {
+      reservation_id,
+      ...completionForm
+    });
+    
+    fetchReservations();
+    alert("Reservation marked as completed!");
+    logAction(user, `Marked reservation ${reservation_id} as completed with ${completionForm.mileage_after} mileage`);
+    
+    setCompletionForm({
+      actual_start_date: "",
+      actual_end_date: "",
+      mileage_before: "",
+      mileage_after: ""
+    });
+    (document.getElementById(`hs-completion-modal-${reservation_id}`) as HTMLElement)?.classList.add('hidden');
+  } catch (err) {
+    console.error("Error completing reservation:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Update reservation details
+const updateReservation = async (e: React.FormEvent, reservation_id: number) => {
+  try {
+    e.preventDefault();
+    setIsLoading(true);
+    await axios.post(`${hostServer}/updateReservation`, {
+      ...updateDataForm,
+      reservation_id
+    });
+    
+    fetchReservations();
+    alert("Reservation updated successfully!");
+    logAction(user, `Updated details for reservation ${reservation_id}`);
+    
+    toggleDialog(null);
+  } catch (err) {
+    console.error("Error updating reservation:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Cancel reservation
+const cancelReservation = async (reservation_id: number) => {
+  if (confirm("Are you sure you want to cancel this reservation?")) {
+    try {
+      setIsLoading(true);
+      await axios.post(`${hostServer}/cancelReservation`, { reservation_id });
+      
+      fetchReservations();
+      alert("Reservation cancelled successfully!");
+      logAction(user, `Cancelled reservation ${reservation_id}`);
     } catch (err) {
-      console.error("Error updating reservation:", err);
+      console.error("Error cancelling reservation:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+};
 
-  // Cancel reservation
-  const cancelReservation = async (reservation_id: number) => {
-    if (confirm("Are you sure you want to cancel this reservation?")) {
-      try {
-        setIsLoading(true);
-        await axios.post(`${hostServer}/cancelReservation`, { reservation_id });
-        fetchReservations();
-        alert("Reservation cancelled successfully!");
-      } catch (err) {
-        console.error("Error cancelling reservation:", err);
-      } finally {
-        setIsLoading(false);
-      }
+// Delete reservation
+const deleteReservation = async (reservation_id: number) => {
+  if (confirm("Are you sure you want to delete this reservation?")) {
+    try {
+      setIsLoading(true);
+      await axios.delete(`${hostServer}/deleteReservation/${reservation_id}`);
+      
+      setReservations(reservations.filter(res => res.reservation_id !== reservation_id));
+      alert("Reservation deleted successfully!");
+      logAction(user, `Permanently deleted reservation ${reservation_id}`);
+    } catch (err) {
+      console.error("Error deleting reservation:", err);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  // Delete reservation
-  const deleteReservation = async (reservation_id: number) => {
-    if (confirm("Are you sure you want to delete this reservation?")) {
-      try {
-        setIsLoading(true);
-        await axios.delete(`${hostServer}/deleteReservation/${reservation_id}`);
-        setReservations(reservations.filter(res => res.reservation_id !== reservation_id));
-        alert("Reservation deleted successfully!");
-      } catch (err) {
-        console.error("Error deleting reservation:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
+  }
+};
 
   // Toggle edit dialog
   const toggleDialog = (reservation: ReservationI | null) => {

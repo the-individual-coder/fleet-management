@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
-
+import {useAuditLog} from '../hooks/useAuditLog.ts'
+        const { logAction } = useAuditLog(); 
 export default interface VendorI {
     vendor_id: number;
     name: string;
@@ -59,67 +60,76 @@ export const Vendor = () => {
             setIsLoading(false);
         }
     };
+// Vendor Management Operations with Logging
 
-    // Register new vendor
-    const registerVendor = async (e: React.FormEvent) => {
+// Register new vendor
+const registerVendor = async (e: React.FormEvent) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/registerVendor`, addDataForm);
+        fetchVendors();
+        alert("Vendor added successfully!");
+        
+        logAction(user, `Registered new vendor: ${addDataForm.name} (${addDataForm.service_type}) - Contact: ${addDataForm.contact_person}`);
+        
+        setAddDataForm({
+            name: "",
+            contact_person: "",
+            email: "",
+            phone: "",
+            address: "",
+            service_type: "parts",
+            is_approved: false
+        });
+        (document.getElementById('hs-focus-management-modal') as HTMLElement)?.classList.add('hidden');
+    } catch (err) {
+        console.error("Error adding vendor:", err);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Update vendor details
+const updateVendor = async (e: React.FormEvent, vendor_id: number) => {
+    try {
+        e.preventDefault();
+        setIsLoading(true);
+        await axios.post(`${hostServer}/updateVendor`, {
+            ...updateDataForm, 
+            vendor_id: vendor_id
+        });
+        fetchVendors();
+        alert("Vendor updated successfully!");
+        
+        logAction(user, `Updated vendor ID ${vendor_id} (${updateDataForm.name || 'name unchanged'}) - Approval: ${updateDataForm.is_approved !== undefined ? updateDataForm.is_approved : 'unchanged'}`);
+        
+        toggleDialog(null);
+    } catch (err) {
+        console.error("Error updating vendor:", err);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+// Delete vendor
+const removeVendor = async (vendor_id: number) => {
+    if (confirm("Are you sure you want to permanently delete this vendor?")) {
         try {
-            e.preventDefault();
             setIsLoading(true);
-            await axios.post(`${hostServer}/registerVendor`, addDataForm);
-            fetchVendors();
-            alert("Vendor added successfully!");
-            setAddDataForm({
-                name: "",
-                contact_person: "",
-                email: "",
-                phone: "",
-                address: "",
-                service_type: "parts",
-                is_approved: false
-            });
-            (document.getElementById('hs-focus-management-modal') as HTMLElement)?.classList.add('hidden');
+            await axios.delete(`${hostServer}/removeVendor/${vendor_id}`);
+            setVendors(vendors.filter(vendor => vendor.vendor_id !== vendor_id));
+            alert("Vendor deleted successfully!");
+            
+            logAction(user, `Deleted vendor ID ${vendor_id} (Permanent deletion)`);
+            
         } catch (err) {
-            console.error("Error adding vendor:", err);
+            console.error("Error deleting vendor:", err);
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // Update vendor
-    const updateVendor = async (e: React.FormEvent, vendor_id: number) => {
-        try {
-            e.preventDefault();
-            setIsLoading(true);
-            await axios.post(`${hostServer}/updateVendor`, {
-                ...updateDataForm, 
-                vendor_id: vendor_id
-            });
-            fetchVendors();
-            alert("Vendor updated successfully!");
-            toggleDialog(null);
-        } catch (err) {
-            console.error("Error updating vendor:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Delete vendor
-    const removeVendor = async (vendor_id: number) => {
-        if (confirm("Are you sure you want to delete this vendor?")) {
-            try {
-                setIsLoading(true);
-                await axios.delete(`${hostServer}/removeVendor/${vendor_id}`);
-                setVendors(vendors.filter(vendor => vendor.vendor_id !== vendor_id));
-                alert("Vendor deleted successfully!");
-            } catch (err) {
-                console.error("Error deleting vendor:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-    };
-
+    }
+};
     // Toggle approval status
     const toggleApproval = async (vendor_id: number, currentStatus: boolean) => {
         try {

@@ -39,38 +39,20 @@ var corsOptions = {
 app.use(cors(corsOptions))
 
 const authRoute = require('./routes/authRoute');
-const assets = require('./routes/assets')
-const document = require('./routes/document')
-const procurement = require('./routes/procurement')
-const projects = require('./routes/projects')
-const projectTask = require('./routes/projectTasks')
-const suppliers = require('./routes/suppliers')
-const warehousing = require('./routes/warehousing')
-const maintenance_request = require('./routes/maintenance_request') 
-const procurement_request = require('./routes/procurement_request'); 
-const SpareParts = require('./routes/spare_parts');
 const vehicle = require('./routes/vehicles');
 const maintenanceFleet = require('./routes/maintenanceFleet');
 const vendor = require('./routes/vendors');
 const vendorRequest = require('./routes/vendorRequest');
 const reservation = require('./routes/vehicleReservations');
+const auditLog = require('./routes/auditLogs');
 
 app.use(authRoute)
-app.use(assets)
-app.use(document)
-app.use(procurement)
-app.use(projects)
-app.use(projectTask)
-app.use(suppliers)
-app.use(warehousing)
-app.use(maintenance_request)
-app.use(procurement_request)
-app.use(SpareParts)
 app.use(vehicle)
 app.use(maintenanceFleet)
 app.use(vendor)
 app.use(vendorRequest)
 app.use(reservation)
+app.use(auditLog)
 app.get("/", (req,res)=>{
   res.json({message:"HEllo"})
 })
