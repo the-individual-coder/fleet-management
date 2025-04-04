@@ -364,8 +364,9 @@ export const Homepage = () => {
                                 {getAllCard()}
            
                             {/* End Card */}
-                                <div className="shadow-lg p-5">
+                                <div className="border overflow-y-auto h-[390px] border-gray-200 rounded-lg shadow-2xs py-5">
                                 <h1  className="text-center text-xl font-semibold text-gray-700 rounded-md">Audit Logs</h1>
+                                <div></div>
                                 {dataLogs.length !== 1 && 
                 dataLogs.map((log, i)=>{
                     return <KanbanBoard key={i} description={log.description} time={log.timestamp} />
@@ -373,8 +374,7 @@ export const Homepage = () => {
                                 </div>
                         </div>
                         {/* End Grid */}
-                        <div className=" h-full mt-8 bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
-</div>
+
                     </div>
                     {/* End Card Blog */}
                 </>

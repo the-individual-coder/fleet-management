@@ -19,8 +19,8 @@ const KanbanBoard: React.FC<KanbanCardProps> = ({ description, time }) => {
     });
   };
   return (
-    <div className="max-w-md mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="max-w-md mx-auto">
+      <div className="bg-white  overflow-hidden">
         <div className="p-4 border-b border-gray-100 bg-gray-50">
           <h2 className="font-medium text-gray-700">Logs</h2>
         </div>

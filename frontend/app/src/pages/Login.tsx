@@ -13,9 +13,9 @@ export const LoginPage = () => {
   const navigate = useNavigate()
   const eye = useRef<HTMLInputElement>(null)
   const hostServer = import.meta.env.VITE_SERVER_HOST
-  useEffect(()=>{
-    authCheck()
-  }, [])
+  // useEffect(()=>{
+  //   authCheck()
+  // }, [])
   useEffect(()=>{
   
     const isRemembered = localStorage.getItem('rememberMe')
@@ -39,17 +39,17 @@ export const LoginPage = () => {
 
   }, [seePassword])
 
-  const authCheck = async () => {
-    try {
-      const res = (await axios.get(`${hostServer}/alreadyauthenticated`)).data
-      if(res.auth){
-        navigate("/")
-      }
-    } catch (error) {
-      console.log(error)
-    }
+  // const authCheck = async () => {
+  //   try {
+  //     const res = (await axios.get(`${hostServer}/alreadyauthenticated`)).data
+  //     if(res.auth){
+  //       navigate("/")
+  //     }
+  //   } catch (error) {
+  //     console.log(error)
+  //   }
 
-  }
+  // }
   const handleLogin = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true)

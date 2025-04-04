@@ -8,7 +8,7 @@ interface CardProps {
 
 export const Card = ({ title, description, num }: CardProps) => {
   return (
-    <div className="group flex flex-col h-full bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
+    <div className="group flex flex-col h-[390px] bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
       <div className="h-52 flex flex-col justify-center items-center bg-blue-600 rounded-t-xl">
         {num}
       </div>

@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { OutletContextType } from "../layouts/MainLayout";
 import React from "react";
-import {useAuditLog} from '../hooks/useAuditLog.ts'
-        const { logAction } = useAuditLog(); 
+import { useAuditLog } from '../hooks/useAuditLog.ts'
+const { logAction } = useAuditLog();
 export default interface VendorI {
     vendor_id: number;
     name: string;
@@ -13,6 +13,7 @@ export default interface VendorI {
     phone: string;
     address: string;
     service_type: 'parts' | 'fuel' | 'maintenance' | 'other';
+    other_service_type: string;
     is_approved: boolean;
     created_at: string;
 }
@@ -35,6 +36,7 @@ export const Vendor = () => {
         phone: "",
         address: "",
         service_type: "parts",
+        other_service_type: "",
         is_approved: false
     });
 
@@ -44,6 +46,7 @@ export const Vendor = () => {
         email: "",
         phone: "",
         address: "",
+        other_service_type: "",
         service_type: "parts",
         is_approved: false
     });
@@ -60,76 +63,77 @@ export const Vendor = () => {
             setIsLoading(false);
         }
     };
-// Vendor Management Operations with Logging
+    // Vendor Management Operations with Logging
 
-// Register new vendor
-const registerVendor = async (e: React.FormEvent) => {
-    try {
-        e.preventDefault();
-        setIsLoading(true);
-        await axios.post(`${hostServer}/registerVendor`, addDataForm);
-        fetchVendors();
-        alert("Vendor added successfully!");
-        
-        logAction(user, `Registered new vendor: ${addDataForm.name} (${addDataForm.service_type}) - Contact: ${addDataForm.contact_person}`);
-        
-        setAddDataForm({
-            name: "",
-            contact_person: "",
-            email: "",
-            phone: "",
-            address: "",
-            service_type: "parts",
-            is_approved: false
-        });
-        (document.getElementById('hs-focus-management-modal') as HTMLElement)?.classList.add('hidden');
-    } catch (err) {
-        console.error("Error adding vendor:", err);
-    } finally {
-        setIsLoading(false);
-    }
-};
-
-// Update vendor details
-const updateVendor = async (e: React.FormEvent, vendor_id: number) => {
-    try {
-        e.preventDefault();
-        setIsLoading(true);
-        await axios.post(`${hostServer}/updateVendor`, {
-            ...updateDataForm, 
-            vendor_id: vendor_id
-        });
-        fetchVendors();
-        alert("Vendor updated successfully!");
-        
-        logAction(user, `Updated vendor ID ${vendor_id} (${updateDataForm.name || 'name unchanged'}) - Approval: ${updateDataForm.is_approved !== undefined ? updateDataForm.is_approved : 'unchanged'}`);
-        
-        toggleDialog(null);
-    } catch (err) {
-        console.error("Error updating vendor:", err);
-    } finally {
-        setIsLoading(false);
-    }
-};
-
-// Delete vendor
-const removeVendor = async (vendor_id: number) => {
-    if (confirm("Are you sure you want to permanently delete this vendor?")) {
+    // Register new vendor
+    const registerVendor = async (e: React.FormEvent) => {
         try {
+            e.preventDefault();
             setIsLoading(true);
-            await axios.delete(`${hostServer}/removeVendor/${vendor_id}`);
-            setVendors(vendors.filter(vendor => vendor.vendor_id !== vendor_id));
-            alert("Vendor deleted successfully!");
-            
-            logAction(user, `Deleted vendor ID ${vendor_id} (Permanent deletion)`);
-            
+            await axios.post(`${hostServer}/registerVendor`, addDataForm);
+            fetchVendors();
+            alert("Vendor added successfully!");
+
+            logAction(user, `Registered new vendor: ${addDataForm.name} (${addDataForm.service_type}) - Contact: ${addDataForm.contact_person}`);
+
+            setAddDataForm({
+                name: "",
+                contact_person: "",
+                email: "",
+                phone: "",
+                address: "",
+                other_service_type: "",
+                service_type: "parts",
+                is_approved: false
+            });
+            (document.getElementById('hs-focus-management-modal') as HTMLElement)?.classList.add('hidden');
         } catch (err) {
-            console.error("Error deleting vendor:", err);
+            console.error("Error adding vendor:", err);
         } finally {
             setIsLoading(false);
         }
-    }
-};
+    };
+
+    // Update vendor details
+    const updateVendor = async (e: React.FormEvent, vendor_id: number) => {
+        try {
+            e.preventDefault();
+            setIsLoading(true);
+            await axios.post(`${hostServer}/updateVendor`, {
+                ...updateDataForm,
+                vendor_id: vendor_id
+            });
+            fetchVendors();
+            alert("Vendor updated successfully!");
+
+            logAction(user, `Updated vendor ID ${vendor_id} (${updateDataForm.name || 'name unchanged'}) - Approval: ${updateDataForm.is_approved !== undefined ? updateDataForm.is_approved : 'unchanged'}`);
+
+            toggleDialog(null);
+        } catch (err) {
+            console.error("Error updating vendor:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Delete vendor
+    const removeVendor = async (vendor_id: number) => {
+        if (confirm("Are you sure you want to permanently delete this vendor?")) {
+            try {
+                setIsLoading(true);
+                await axios.delete(`${hostServer}/removeVendor/${vendor_id}`);
+                setVendors(vendors.filter(vendor => vendor.vendor_id !== vendor_id));
+                alert("Vendor deleted successfully!");
+
+                logAction(user, `Deleted vendor ID ${vendor_id} (Permanent deletion)`);
+
+            } catch (err) {
+                console.error("Error deleting vendor:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
     // Toggle approval status
     const toggleApproval = async (vendor_id: number, currentStatus: boolean) => {
         try {
@@ -156,6 +160,7 @@ const removeVendor = async (vendor_id: number) => {
                 email: data.email,
                 phone: data.phone,
                 address: data.address,
+                other_service_type: data.other_service_type,
                 service_type: data.service_type,
                 is_approved: data.is_approved
             });
@@ -202,7 +207,7 @@ const removeVendor = async (vendor_id: number) => {
                                             >
                                                 Add Vendor
                                             </button>
-                                            
+
                                             {/* Add Vendor Modal */}
                                             <div
                                                 id="hs-focus-management-modal"
@@ -235,7 +240,7 @@ const removeVendor = async (vendor_id: number) => {
                                                                 {/* Form fields for adding vendor */}
                                                                 <label className="block text-sm font-medium mb-2 dark:text-white">Name</label>
                                                                 <input
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, name: e.target.value})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, name: e.target.value })}
                                                                     value={addDataForm.name}
                                                                     type="text"
                                                                     required
@@ -245,7 +250,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                                                 <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Contact Person</label>
                                                                 <input
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, contact_person: e.target.value})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, contact_person: e.target.value })}
                                                                     value={addDataForm.contact_person}
                                                                     type="text"
                                                                     className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -254,7 +259,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                                                 <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Email</label>
                                                                 <input
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, email: e.target.value})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, email: e.target.value })}
                                                                     value={addDataForm.email}
                                                                     type="email"
                                                                     className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -263,7 +268,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                                                 <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Phone</label>
                                                                 <input
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, phone: e.target.value})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, phone: e.target.value })}
                                                                     value={addDataForm.phone}
                                                                     type="tel"
                                                                     className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -272,7 +277,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                                                 <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Address</label>
                                                                 <textarea
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, address: e.target.value})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, address: e.target.value })}
                                                                     value={addDataForm.address}
                                                                     className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
                                                                     placeholder="Full address"
@@ -282,7 +287,7 @@ const removeVendor = async (vendor_id: number) => {
                                                                 <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Service Type</label>
                                                                 <select
                                                                     value={addDataForm.service_type}
-                                                                    onChange={(e) => setAddDataForm({...addDataForm, service_type: e.target.value as any})}
+                                                                    onChange={(e) => setAddDataForm({ ...addDataForm, service_type: e.target.value as any })}
                                                                     className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                                                                 >
                                                                     <option value="parts">Parts</option>
@@ -290,6 +295,19 @@ const removeVendor = async (vendor_id: number) => {
                                                                     <option value="maintenance">Maintenance</option>
                                                                     <option value="other">Other</option>
                                                                 </select>
+                                                                {addDataForm.service_type == "other" &&
+                                                                    <>
+                                                                        <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Please specify:</label>
+                                                                        <textarea
+                                                                        required
+                                                                            onChange={(e) => setAddDataForm({ ...addDataForm, other_service_type: e.target.value })}
+                                                                            value={addDataForm.other_service_type}
+                                                                            className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                                            placeholder="Other service type"
+                                                                            rows={2}
+                                                                        ></textarea>
+                                                                    </>}
+
                                                             </div>
                                                             <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t dark:border-neutral-700">
                                                                 <button
@@ -369,19 +387,19 @@ const removeVendor = async (vendor_id: number) => {
                                                         </td>
                                                         <td className="px-6 py-2 whitespace-nowrap">
                                                             <span className={`inline-flex items-center gap-1.5 py-1 px-2 rounded-full text-xs font-medium capitalize 
-                                                                ${vendor.service_type === 'parts' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
-                                                                  vendor.service_type === 'fuel' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                                                  vendor.service_type === 'maintenance' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                                                                  'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}`}>
-                                                                {vendor.service_type}
+                                                                ${vendor.service_type === 'parts' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                                                                    vendor.service_type === 'fuel' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                                                        vendor.service_type === 'maintenance' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                                                                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}`}>
+                                                                {vendor.service_type == 'other'?vendor.other_service_type:vendor.service_type}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-2 whitespace-nowrap">
-                                                            <span 
+                                                            <span
                                                                 onClick={() => user?.role !== "3" && toggleApproval(vendor.vendor_id, vendor.is_approved)}
                                                                 className={`inline-flex items-center gap-1.5 py-1 px-2 rounded-full text-xs font-medium cursor-pointer 
-                                                                    ${vendor.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
-                                                                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}
+                                                                    ${vendor.is_approved ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}
                                                             >
                                                                 {vendor.is_approved ? 'Approved' : 'Pending'}
                                                             </span>
@@ -435,8 +453,8 @@ const removeVendor = async (vendor_id: number) => {
                                                 </svg>
                                                 Prev
                                             </button>
-                                            <span className="font-semibold text-sm text-gray-800 dark:text-neutral-200"> 
-                                                Page {currentPage} of {totalPages} 
+                                            <span className="font-semibold text-sm text-gray-800 dark:text-neutral-200">
+                                                Page {currentPage} of {totalPages}
                                             </span>
                                             <button
                                                 onClick={() => setCurrentPage(currentPage + 1)}
@@ -488,7 +506,7 @@ const removeVendor = async (vendor_id: number) => {
                                     <div className="p-4 overflow-y-auto">
                                         <label className="block text-sm font-medium mb-2 dark:text-white">Name</label>
                                         <input
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, name: e.target.value})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, name: e.target.value })}
                                             value={updateDataForm.name}
                                             type="text"
                                             required
@@ -498,7 +516,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Contact Person</label>
                                         <input
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, contact_person: e.target.value})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, contact_person: e.target.value })}
                                             value={updateDataForm.contact_person}
                                             type="text"
                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -507,7 +525,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Email</label>
                                         <input
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, email: e.target.value})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, email: e.target.value })}
                                             value={updateDataForm.email}
                                             type="email"
                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -516,7 +534,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Phone</label>
                                         <input
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, phone: e.target.value})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, phone: e.target.value })}
                                             value={updateDataForm.phone}
                                             type="tel"
                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
@@ -525,7 +543,7 @@ const removeVendor = async (vendor_id: number) => {
 
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Address</label>
                                         <textarea
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, address: e.target.value})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, address: e.target.value })}
                                             value={updateDataForm.address}
                                             className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
                                             placeholder="Full address"
@@ -535,7 +553,7 @@ const removeVendor = async (vendor_id: number) => {
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Service Type</label>
                                         <select
                                             value={updateDataForm.service_type}
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, service_type: e.target.value as any})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, service_type: e.target.value as any })}
                                             className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                                         >
                                             <option value="parts">Parts</option>
@@ -544,10 +562,23 @@ const removeVendor = async (vendor_id: number) => {
                                             <option value="other">Other</option>
                                         </select>
 
+                                        {updateDataForm.service_type == "other" &&
+                                            <>
+                                                <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Please specify:</label>
+                                                <textarea
+                                                    required
+                                                    onChange={(e) => setUpdateDataForm({ ...updateDataForm, other_service_type: e.target.value })}
+                                                    value={updateDataForm.other_service_type}
+                                                    className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:placeholder-neutral-500 dark:text-neutral-400"
+                                                    placeholder="Other service type"
+                                                    rows={2}
+                                                ></textarea>
+                                            </>}
+
                                         <label className="mt-5 block text-sm font-medium mb-2 dark:text-white">Approval Status</label>
                                         <select
                                             value={updateDataForm.is_approved ? '1' : '0'}
-                                            onChange={(e) => setUpdateDataForm({...updateDataForm, is_approved: e.target.value === '1'})}
+                                            onChange={(e) => setUpdateDataForm({ ...updateDataForm, is_approved: e.target.value === '1' })}
                                             className="py-3 px-4 pe-9 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
                                         >
                                             <option value="0">Pending</option>

@@ -88,7 +88,7 @@ export const MainLayout = () => {
     } catch (error) {
       setIsLoading(false)
       console.log(error)
-      throw(error)
+      navigate("/login")
     }
   }
 

@@ -18,12 +18,12 @@ vendor.get("/getApprovedVendors", async (req, res) => {
 
 // Register a new vendor
 vendor.post("/registerVendor", async (req, res) => {
-    const { name, contact_person, email, phone, address, service_type } = req.body;
+    const { name, contact_person, email, phone, address, service_type, other_service_type } = req.body;
     const query = `
         INSERT INTO vendors 
-        (name, contact_person, email, phone, address, service_type) 
+        (name, contact_person, email, phone, address, other_service_type, service_type) 
         VALUES 
-        ('${name}', '${contact_person}', '${email}', '${phone}', '${address}', '${service_type}')
+        ('${name}', '${contact_person}', '${email}', '${phone}', '${address}', '${other_service_type}', '${service_type}')
     `;
     const result = await db(query);
     res.json(result);
@@ -31,7 +31,7 @@ vendor.post("/registerVendor", async (req, res) => {
 
 // Update vendor information
 vendor.post("/updateVendor", async (req, res) => {
-    const { vendor_id, name, contact_person, email, phone, address, service_type, is_approved } = req.body;
+    const { vendor_id, name, contact_person, email, phone, address, service_type, other_service_type, is_approved } = req.body;
     const query = `
         UPDATE vendors SET 
         name = '${name}', 
@@ -39,6 +39,7 @@ vendor.post("/updateVendor", async (req, res) => {
         email = '${email}', 
         phone = '${phone}', 
         address = '${address}', 
+        other_service_type = '${other_service_type}',
         service_type = '${service_type}',
         is_approved = ${is_approved}
         WHERE vendor_id = ${vendor_id}
