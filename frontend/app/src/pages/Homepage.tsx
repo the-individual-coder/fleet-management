@@ -5,6 +5,7 @@ import KanbanBoard from "../components/KanbanBoard";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card } from "../components/card";
+import LineChart from '../components/LineChart'
 
 export const Homepage = () => {
 
@@ -374,7 +375,7 @@ export const Homepage = () => {
                                 </div>
                         </div>
                         {/* End Grid */}
-
+                      <LineChart/>
                     </div>
                     {/* End Card Blog */}
                 </>
