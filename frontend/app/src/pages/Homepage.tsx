@@ -326,7 +326,7 @@ redirect: "/vendors",
           ];
           
         for(let i = 0; i<5; i++){
-              component.push( <a href={dashboardCards[i].redirect}> <Card  key={dashboardCards[i].title}  title={dashboardCards[i].title} description={dashboardCards[i].description} num={dashboardCards[i].num} /><a/>)
+              component.push( <a href={dashboardCards[i].redirect}> <Card  key={dashboardCards[i].title}  title={dashboardCards[i].title} description={dashboardCards[i].description} num={dashboardCards[i].num} /></a>)
         }
         return component
     }
