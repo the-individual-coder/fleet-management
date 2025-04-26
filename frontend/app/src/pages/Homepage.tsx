@@ -25,6 +25,7 @@ export const Homepage = () => {
             {
               title: "Maintenance Requests",
               description: "Track and manage all vehicle maintenance activities, schedule services, and view maintenance history",
+            redirect: "/maintenances",
               num:(<svg
               width={100}
               height={100}
@@ -210,6 +211,7 @@ export const Homepage = () => {
             },
             {
               title: "Vehicle Reservations",
+  redirect: "/vehicles-reservations",
               description: "Manage vehicle bookings, check availability, and approve reservation requests",
               num:(<svg
                 width={100}
@@ -238,6 +240,7 @@ export const Homepage = () => {
             },
             {
               title: "Vendor Requests",
+redirect: "/vendor-requests",
               description: "Handle purchase orders and service requests from your vendor network",
               num:(<svg
                 fill="white"
@@ -274,6 +277,7 @@ export const Homepage = () => {
             },
             {
               title: "Vehicles",
+redirect: "/vehicles",
               description: "View fleet inventory, vehicle details, and current status of all company vehicles",
               num:(<svg fill="white" viewBox="0 0 24 24" width={100} height={100} xmlns="http://www.w3.org/2000/svg">
                 <g id="SVGRepo_bgCarrier" strokeWidth={0} />
@@ -285,6 +289,7 @@ export const Homepage = () => {
             },
             {
               title: "Vendors",
+redirect: "/vendors",
               description: "Manage vendor relationships, service providers, and maintenance partners",
               num:(<svg
                 width={100}
@@ -321,7 +326,7 @@ export const Homepage = () => {
           ];
           
         for(let i = 0; i<5; i++){
-              component.push(  <Card  key={dashboardCards[i].title}  title={dashboardCards[i].title} description={dashboardCards[i].description} num={dashboardCards[i].num} />)
+              component.push( <a href={dashboardCards[i].redirect}> <Card  key={dashboardCards[i].title}  title={dashboardCards[i].title} description={dashboardCards[i].description} num={dashboardCards[i].num} /><a/>)
         }
         return component
     }
